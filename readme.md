@@ -1,6 +1,6 @@
-# Task Management API
+# Workflow Management API
 
-A Task Management System built with FastAPI and PostgreSQL where users can sign up, log in, log out, and manage tasks securely. The project implements authentication, CRUD operations, and JWT-based token management.
+A Workflow Management System built with FastAPI and PostgreSQL where users can sign up, log in, log out, and manage tasks securely. The project implements authentication, CRUD operations, and JWT-based token management.
 
 ## Table of Contents
 - [Features](#features)
@@ -15,7 +15,7 @@ A Task Management System built with FastAPI and PostgreSQL where users can sign 
 ## Features
 - **User Authentication:** Sign up, login, logout, and refresh token functionality.
 - **User Management:** Get user details.
-- **Task Management:** Create, read, update, and delete tasks.
+- **Workflow Management:** Create, read, update, and delete tasks.
 - **JWT Authentication:** Secure routes with JWT tokens.
 - **Task Assignment:** Each task is associated with a user (`owner_id`).
 
