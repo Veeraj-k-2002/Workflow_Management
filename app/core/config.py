@@ -1,11 +1,12 @@
 from pydantic_settings import BaseSettings
 import os
 class Settings(BaseSettings):
-    PG_USERNAME: str 
-    PG_PASSWORD: str 
-    PG_HOST: str 
-    PG_PORT: str 
-    DATABASE_NAME: str 
+    # PG_USERNAME: str 
+    # PG_PASSWORD: str 
+    # PG_HOST: str 
+    # PG_PORT: str 
+    # DATABASE_NAME: str 
+    DATABASE_URL: str
     SECRET_KEY: str 
     ALGORITHM: str 
     ACCESS_TOKEN_EXPIRE_MINUTES: int 
