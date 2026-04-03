@@ -4,7 +4,7 @@ uvicorn==0.40.0
 httpx==0.28.1
 
 # Database and ORM
-sqlalchemy==2.0.30
+sqlalchemy==2.0.48
 psycopg2-binary==2.9.6
 asyncpg==0.30.0
 
