@@ -6,15 +6,15 @@ from urllib.parse import quote_plus
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 from sqlalchemy.ext.asyncio import AsyncSession
 
-USERNAME: str = settings.PG_USERNAME
-PASSWORD: str = settings.PG_PASSWORD
-HOST: str = settings.PG_HOST
-PORT: str = settings.PG_PORT  
-DATABASE_NAME: str = settings.DATABASE_NAME
+# USERNAME: str = settings.PG_USERNAME
+# PASSWORD: str = settings.PG_PASSWORD
+# HOST: str = settings.PG_HOST
+# PORT: str = settings.PG_PORT  
+# DATABASE_NAME: str = settings.DATABASE_NAME
 
-# URL-encode the user and password
-encoded_user = quote_plus(USERNAME)
-encoded_password = quote_plus(PASSWORD)
+# # URL-encode the user and password
+# encoded_user = quote_plus(USERNAME)
+# encoded_password = quote_plus(PASSWORD)
 
 # ASYNCRONOUS SETUP
 # ASYNC_SQLALCHEMY_DATABASE_URI = (
