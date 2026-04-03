@@ -21,6 +21,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 #     f"postgresql+asyncpg://{encoded_user}:{encoded_password}@{HOST}:{PORT}/{DATABASE_NAME}"
 # )
 # asyncpg's pooling for higher throughput.
+
+print(f"Using DATABASE_URL: {settings.DATABASE_URL}")
 async_engine = create_async_engine(
     settings.DATABASE_URL,
     pool_pre_ping=True
