@@ -5,7 +5,7 @@ from app.models.models import *
 import uuid
 from app.schemas.auth_schema import * 
 from app.core.config import settings
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from jose import jwt
 from app.core.config import CustomAPIException
 import asyncio
@@ -134,7 +134,7 @@ class AuthService:
         db.add(user)
         await db.flush()
 
-        refresh_token_expiry = int((datetime.utcnow() + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)).timestamp())
+        refresh_token_expiry = int((datetime.now(timezone.utc) + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)).timestamp())
 
         refresh_token = uuid.uuid4()
 
@@ -157,12 +157,30 @@ class AuthService:
         )
 
 
+    # def create_access_token(self, data: dict, expires_minutes: int):
+    #     to_encode = data.copy()
+    #     expire = datetime.utcnow() + timedelta(minutes=expires_minutes)
+    #     to_encode.update({
+    #         "exp": expire,
+    #         "iat": datetime.utcnow()
+    #     })
+
+    #     return jwt.encode(
+    #         to_encode,
+    #         settings.SECRET_KEY,
+    #         algorithm=settings.ALGORITHM
+    #     )
+
+
     def create_access_token(self, data: dict, expires_minutes: int):
         to_encode = data.copy()
-        expire = datetime.utcnow() + timedelta(minutes=expires_minutes)
+
+        now = datetime.now(timezone.utc)
+        expire = now + timedelta(minutes=expires_minutes)
+
         to_encode.update({
             "exp": expire,
-            "iat": datetime.utcnow()
+            "iat": now
         })
 
         return jwt.encode(
@@ -170,7 +188,6 @@ class AuthService:
             settings.SECRET_KEY,
             algorithm=settings.ALGORITHM
         )
-
 
 
     async def login_user(self, login_data: LoginRequest, db: AsyncSession):
@@ -194,7 +211,7 @@ class AuthService:
 
         # Convert UUID to string
         user_id_str = str(user_credentials.user_id)
-        current_time = int(datetime.utcnow().timestamp())
+        current_time = int(datetime.now(timezone.utc).timestamp())
 
         # Check if existing refresh token is still valid
         if user_credentials.refresh_token and user_credentials.refresh_token_expiry > current_time:
@@ -203,7 +220,7 @@ class AuthService:
         else:
             # Generate new refresh token UUID and update expiry
             refresh_token_value = uuid.uuid4()
-            new_expiry = int((datetime.utcnow() + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)).timestamp())
+            new_expiry = int((datetime.now(timezone.utc) + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)).timestamp())
             
             # Update in database
             user_credentials.refresh_token = refresh_token_value
@@ -231,7 +248,7 @@ class AuthService:
     async def logout_user(self, db: AsyncSession, user_id):
         """Logout User by removing refresh token and its expiry"""
         
-        new_expiry = int(datetime.utcnow().timestamp())
+        new_expiry = int(datetime.now(timezone.utc).timestamp())
         
         result = await db.execute(
             update(UserCredentials)

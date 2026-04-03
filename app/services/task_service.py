@@ -1,7 +1,7 @@
 from sqlalchemy.future import select
 from sqlalchemy import delete
 from app.schemas.task_schema import *
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 from app.models.models import *
 from app.core.config import CustomAPIException
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -106,7 +106,7 @@ class TaskService:
         for field, value in task_data.dict(exclude_unset=True).items():
             setattr(task, field, value)
 
-        task.updated_at = datetime.utcnow()
+        task.updated_at = datetime.now(timezone.utc)
         await db.commit()
 
         return TaskMessageResponse(message="Task updated successfully")
