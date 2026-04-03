@@ -17,12 +17,12 @@ encoded_user = quote_plus(USERNAME)
 encoded_password = quote_plus(PASSWORD)
 
 # ASYNCRONOUS SETUP
-ASYNC_SQLALCHEMY_DATABASE_URI = (
-    f"postgresql+asyncpg://{encoded_user}:{encoded_password}@{HOST}:{PORT}/{DATABASE_NAME}"
-)
+# ASYNC_SQLALCHEMY_DATABASE_URI = (
+#     f"postgresql+asyncpg://{encoded_user}:{encoded_password}@{HOST}:{PORT}/{DATABASE_NAME}"
+# )
 # asyncpg's pooling for higher throughput.
 async_engine = create_async_engine(
-    ASYNC_SQLALCHEMY_DATABASE_URI,
+    settings.DATABASE_URL,
     pool_pre_ping=True
 )
 async_SessionLocal = async_sessionmaker(
