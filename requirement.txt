@@ -1,0 +1,26 @@
+# FastAPI and ASGI Server
+fastapi==0.128.0
+uvicorn==0.40.0
+httpx==0.28.1
+
+# Database and ORM
+sqlalchemy==2.0.30
+psycopg2-binary==2.9.6
+asyncpg==0.30.0
+
+# Authentication and Security
+passlib==1.7.4
+python-jose==3.5.0
+python-multipart==0.0.9
+
+# Pydantic for Data Validation
+pydantic==2.12.5
+pydantic-settings==2.12.0
+pydantic[email]
+
+# API Calling
+requests==2.32.3
+
+# Utility Libraries
+python-dotenv==1.1.0
+bcrypt==4.2.1
