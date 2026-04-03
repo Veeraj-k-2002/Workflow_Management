@@ -160,6 +160,9 @@ class AuthService:
     # def create_access_token(self, data: dict, expires_minutes: int):
     #     to_encode = data.copy()
     #     expire = datetime.utcnow() + timedelta(minutes=expires_minutes)
+
+    #     now = datetime.now(timezone.utc)
+        # expire = now + timedelta(minutes=expires_minutes)
     #     to_encode.update({
     #         "exp": expire,
     #         "iat": datetime.utcnow()
