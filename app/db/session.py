@@ -22,10 +22,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 # )
 # asyncpg's pooling for higher throughput.
 
-print(f"Using DATABASE_URL: {settings.DATABASE_URL}")
+# print(f"Using DATABASE_URL: {settings.DATABASE_URL}")
 async_engine = create_async_engine(
     settings.DATABASE_URL,
-    pool_pre_ping=True
+    pool_pre_ping=True,
+    connect_args={
+        "statement_cache_size": 0  # Disable prepared statements
+    }
 )
 async_SessionLocal = async_sessionmaker(
     bind=async_engine, class_=AsyncSession, expire_on_commit=False
