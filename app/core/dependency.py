@@ -39,19 +39,22 @@ class JWTBearer(HTTPBearer):
 #     }
 
 async def get_current_user(payload=Depends(JWTBearer())):
-    
     if not isinstance(payload, dict):
         raise HTTPException(status_code=401, detail="Invalid token structure")
-    
+
     user_id = payload.get("sub")
+    role = payload.get("role")
+    company_raw = payload.get("company_id")
+    company_id = company_raw if company_raw else None
 
     if not user_id:
         raise HTTPException(status_code=401, detail="Invalid token payload")
-    
+
     if payload.get("type") != "access":
         raise HTTPException(status_code=401, detail="Invalid token type")
 
-
     return {
-        "user_id": user_id
+        "user_id": user_id,
+        "role": role,
+        "company_id": company_id,
     }

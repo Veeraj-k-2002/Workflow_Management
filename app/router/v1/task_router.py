@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.session import async_get_db
 from app.core.dependency import get_current_user
+from app.core.rbac import get_current_user_with_role
 from app.services.task_service import TaskService
 from app.schemas.task_schema import *
 import logging
@@ -28,8 +29,11 @@ async def create_task_api(task_data: TaskCreateRequest, user_data: dict = Depend
 
 
 @router.get("/get_tasks", response_model=TaskListResponse)
-async def get_tasks_api(user_data: dict = Depends(get_current_user), db: AsyncSession = Depends(async_get_db)):
+async def get_tasks_api(user_data: dict = Depends(get_current_user_with_role), db: AsyncSession = Depends(async_get_db)):
     try:
+        role = user_data.get("role")
+        if role in ("admin", "superuser"):
+            return await task_service.get_company_tasks(db, user_data)
         return await task_service.get_tasks(db, user_data["user_id"])
     except CustomAPIException as e:
         logger.error(f"CustomError:", exc_info=e)
@@ -41,9 +45,9 @@ async def get_tasks_api(user_data: dict = Depends(get_current_user), db: AsyncSe
 
 
 @router.put("/update_task/{task_id}", response_model=TaskMessageResponse)
-async def update_task_api(task_id: str, task_data: TaskUpdateRequest, user_data: dict = Depends(get_current_user), db: AsyncSession = Depends(async_get_db)):
+async def update_task_api(task_id: str, task_data: TaskUpdateRequest, user_data: dict = Depends(get_current_user_with_role), db: AsyncSession = Depends(async_get_db)):
     try:
-        return await task_service.update_task(db, user_data["user_id"], task_id, task_data)
+        return await task_service.update_task(db, user_data, task_id, task_data)
     except CustomAPIException as e:
         logger.error(f"CustomError:", exc_info=e)
         raise HTTPException(status_code=e.status_code, detail=str(e.detail))
@@ -52,9 +56,9 @@ async def update_task_api(task_id: str, task_data: TaskUpdateRequest, user_data:
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.delete("/delete_task/{task_id}", response_model=TaskMessageResponse)
-async def delete_task_api(task_id: str, user_data: dict = Depends(get_current_user), db: AsyncSession = Depends(async_get_db)):
+async def delete_task_api(task_id: str, user_data: dict = Depends(get_current_user_with_role), db: AsyncSession = Depends(async_get_db)):
     try:
-        return await task_service.delete_task(db, user_data["user_id"], task_id)
+        return await task_service.delete_task(db, user_data, task_id)
     except CustomAPIException as e:
         logger.error(f"CustomError:", exc_info=e)
         raise HTTPException(status_code=e.status_code, detail=str(e.detail))

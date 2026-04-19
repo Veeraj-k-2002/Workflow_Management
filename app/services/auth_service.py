@@ -122,13 +122,25 @@ class AuthService:
             raise CustomAPIException(409, "Username already exists")
 
 
+        company_uuid = None
+        if signup_data.company_id:
+            try:
+                company_uuid = uuid.UUID(signup_data.company_id)
+            except ValueError:
+                raise CustomAPIException(400, "Invalid company_id format")
+            company_row = await db.get(Company, company_uuid)
+            if not company_row:
+                raise CustomAPIException(404, "Company not found")
+
         user = User(
             name=signup_data.name,
             email=signup_data.email.lower(),
-            country_code = signup_data.country_code,
-            phone = signup_data.phone,
+            country_code=signup_data.country_code,
+            phone=signup_data.phone,
             year_of_birth=signup_data.year_of_birth,
-            gender=signup_data.gender
+            gender=signup_data.gender.value,
+            role=UserRole.NORMAL,
+            company_id=company_uuid,
         )
 
         db.add(user)
@@ -153,7 +165,8 @@ class AuthService:
 
         return SignupResponse(
             user_id=str(user.id),
-            message="Signup successful"
+            message="Signup successful",
+            role=UserRoleEnum.normal,
         )
 
 
@@ -231,20 +244,27 @@ class AuthService:
             await db.commit()
             await db.refresh(user_credentials)
 
+        cred_user = user_credentials.r_cred_user
         access_token = self.create_access_token(
-            data={"sub": user_id_str, "type": "access"},
-            expires_minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES
+            data={
+                "sub": user_id_str,
+                "type": "access",
+                "role": cred_user.role.value,
+                "company_id": str(cred_user.company_id) if cred_user.company_id else "",
+            },
+            expires_minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES,
         )
-
 
         return LoginResponse(
             user_id=user_id_str,
             username=user_credentials.username,
-            name=user_credentials.r_cred_user.name,
-            email=user_credentials.r_cred_user.email,
+            name=cred_user.name,
+            email=cred_user.email,
+            role=UserRoleEnum(cred_user.role.value),
+            company_id=str(cred_user.company_id) if cred_user.company_id else None,
             access_token=access_token,
             refresh_token=str(refresh_token_value),
-            token_type="bearer"
+            token_type="bearer",
         )
     
 
@@ -285,14 +305,16 @@ class AuthService:
             raise CustomAPIException(404, "User not found")
 
         response = UserBaseResponse(
-            user_id=str(user.id), 
+            user_id=str(user.id),
             name=user.name,
             username=user.r_credentials.username,
-            email=user.email, 
-            year_of_birth=user.year_of_birth, 
+            email=user.email,
+            year_of_birth=user.year_of_birth,
             gender=str(user.gender),
-            country_code= user.country_code,
-            phone=user.phone
+            country_code=user.country_code,
+            phone=user.phone,
+            role=UserRoleEnum(user.role.value),
+            company_id=str(user.company_id) if user.company_id else None,
         )
 
         return response
