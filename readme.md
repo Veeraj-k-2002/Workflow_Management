@@ -1,95 +1,78 @@
 # Workflow Management API
 
-A Workflow Management System built with FastAPI and PostgreSQL where users can sign up, log in, log out, and manage tasks securely. The project implements authentication, CRUD operations, and JWT-based token management.
+A **multi-tenant workflow automation SaaS backend** built with FastAPI and PostgreSQL. The platform supports secure authentication, role-aware tenant access control, workflow task lifecycle management, and service-oriented backend architecture.
 
 ## Table of Contents
-- [Features](#features)
-- [Database Schema](#database-schema)
+- [Architecture](#architecture)
+- [Multi-tenant Security Model](#multi-tenant-security-model)
+- [Workflow Engine](#workflow-engine)
+- [Eventing & Integrations](#eventing--integrations)
+- [Scalability/Observability](#scalabilityobservability)
+- [Current API Surface](#current-api-surface)
 - [Tech Stack](#tech-stack)
 - [Installation](#installation)
-- [Running the Project](#running-the-project)
-- [API Endpoints](#api-endpoints)
-- [Authentication](#authentication)
-- [Future Enhancements](#future-enhancements)
-
-## Features
-- **User Authentication:** Sign up, login, logout, and refresh token functionality.
-- **User Management:** Get user details.
-- **Workflow Management:** Create, read, update, and delete tasks.
-- **JWT Authentication:** Secure routes with JWT tokens.
-- **Task Assignment:** Each task is associated with a user (`owner_id`).
-
-## Database Schema
-
-### Users Table
-| Column | Type | Description |
-|--------|------|------------|
-| id     | UUID | Primary key |
-| name   | varchar | User full name |
-| email  | varchar | Unique user email |
-| country_code | varchar | Country code for phone |
-| phone | varchar | User phone number |
-| year_of_birth | int | Year of birth |
-| gender | varchar | Gender |
-
-### User Credentials Table
-| Column               | Type      | Description                  |
-|----------------------|-----------|------------------------------|
-| user_id              | UUID      | Foreign key to users.id      |
-| username             | varchar   | Login username               |
-| password_hash        | varchar   | Hashed password              |
-| refresh_token        | UUID      | Refresh token for JWT        |
-| refresh_token_expiry | int       | Expiry time for refresh token|
-| created_at           | timestamp | Account creation timestamp   |
-| updated_at           | timestamp | Last update timestamp        |
-
-### Tasks Table
-| Column          | Type       | Description                     |
-|-----------------|------------|---------------------------------|
-| id              | UUID       | Primary key                     |
-| title           | varchar    | Task title                      |
-| description     | text       | Task description                |
-| status          | varchar    | Task status (e.g., Pending/Done)|
-| priority        | varchar    | Task priority (High/Medium/Low) |
-| due_date        | timestamp  | Task due date                   |
-| owner_id        | UUID       | Foreign key to users.id         |
-| created_at      | timestamp  | Task creation timestamp         |
-| updated_at      | timestamp  | Last update timestamp           |
-
-
-## Tech Stack
-- **Backend:** Python, FastAPI  
-- **Database:** PostgreSQL  
-- **Authentication:** JWT Tokens  
-- **ORM:** SQLAlchemy / asyncpg  
 
 
 
-## Installation
-cd task-management
 
-Create a virtual environment and activate it:
-python -m venv venv
-# Windows
-venv\Scripts\activate
+## Architecture
+The system is organized into modular backend layers:
+- **Routers (`app/router/v1`)** define HTTP contract and request/response boundaries.
+- **Services (`app/services`)** centralize business logic such as auth, RBAC checks, and workflow task operations.
+- **Models (`app/models`)** define tenant, user, credentials, and workflow entities.
+- **Core (`app/core`)** handles config, dependency wiring, and role enforcement.
+- **DB (`app/db`)** provides async SQLAlchemy session management for PostgreSQL.
 
+This layered structure keeps business logic decoupled from transport and persistence concerns, enabling clean extensibility for enterprise use cases.
 
+## Multi-tenant Security Model
+The platform is designed for organization-level tenancy:
+- **Company entity** represents an isolated tenant boundary.
+- **User-to-company mapping** enforces tenant ownership.
+- **Role model** (`normal`, `admin`, `superuser`) drives authorization behavior.
+- **Tenant-scoped task access** allows:
+  - normal users to access only their own tasks.
+  - admin/superuser to access tasks within the same company.
 
-Install dependencies:- 
-pip install -r requirements.txt
+Authentication and session security:
+- JWT-protected routes for workflow actions.
+- Refresh token lifecycle management for long-lived sessions.
+- Role-aware dependencies at route level.
 
+## Workflow Engine
+Current workflow domain capabilities:
+- Task lifecycle with status and priority.
+- User-owned task creation, updates, retrieval, and deletion.
+- Company-level task visibility for elevated roles.
+- Due date support for deadline-driven execution.
 
-Running the Project:- 
-uvicorn main:app --reload
+### Workflow Evolution Roadmap
+To expand from task management into true workflow orchestration:
+- Configurable state-transition rules.
+- Stage-level approvals and validation gates.
+- SLA timers and automated escalations.
+- Workflow templates for repeatable business processes.
 
+## Eventing & Integrations
+The architecture is prepared to evolve into integration-friendly SaaS workflows:
+- Service layer boundaries simplify event emission on domain actions.
+- Recommended additions:
+  - Domain events (`task.created`, `task.updated`, `task.completed`).
+  - Outbox pattern for reliable async publishing.
+  - Webhook subscriptions per tenant with retries.
+  - External integrations (Slack/Email/CRM) via worker pipelines.
 
-Visit http://127.0.0.1:8000/api/v1/docs to see the Swagger UI and test my API endpoints.
+## Scalability/Observability
+Production-oriented backend improvements are planned around:
+- **Scalability:** pagination, filtered query APIs, task indexing, async workers.
+- **Reliability:** idempotency keys, optimistic locking, retry policies.
+- **Security:** per-tenant rate limiting and audit trails.
+- **Observability:** structured logging, trace IDs, metrics, and health checks.
 
+These capabilities position the project as a SaaS backend platform rather than a basic CRUD app.
 
-API Endpoints
-
-
-Auth Endpoints -->
+## Current API Surface
+### Auth Endpoints
 
 | Method | Endpoint       | Description         |
 | ------ | -------------- | ------------------- |
@@ -99,23 +82,33 @@ Auth Endpoints -->
 | GET    | /get_user/{id} | Get user details    |
 
 
-Task Endpoints -->
-
-| Method | Endpoint          | Description       |
-| ------ | ----------------- | ----------------- |
-| POST   | /create_task      | Create a new task |
-| GET    | /tasks/{id}       | Get task by ID    |
-| GET    | /tasks/           | Get all tasks     |
-| PUT    | /update_task/{id} | Update task by ID |
-| DELETE | /delete_task/{id} | Delete task by ID |
+### Task Endpoints
+| Method | Endpoint                | Description                                 |
+| ------ | ----------------------- | ------------------------------------------  |
+| POST   | /tasks/create_task      | Create workflow task for authenticated user |
+| GET    | /tasks/get_tasks        | Get own tasks or tenant tasks by role       |
+| PUT    | /tasks/update_task/{id} | Update task by role-based access control    |
+| DELETE | /tasks/delete_task/{id} | Delete task by role-based access control    |
 
 
-Authentication-->
--JWT Token: Required for all task operations.
--Refresh Token: Implemented to refresh access tokens securely.
+## Tech Stack
+- **Backend:** Python, FastAPI
+- **Database:** PostgreSQL
+- **Authentication:** JWT + Refresh Tokens
+- **ORM:** SQLAlchemy (async)
+- **Server:** Uvicorn
 
-Future Enhancements -->
--Add role-based access (admin, regular user).
--Implement task notifications / reminders.
--Add task comments or attachments.
--Include filtering and sorting tasks by priority, due date, etc.
+## Installation
+```bash
+python -m venv venv
+source venv/bin/activate  # Windows: venv\Scripts\activate
+pip install -r requirements.txt
+```
+
+Run the API:
+```bash
+uvicorn app.main:app --reload
+```
+
+Docs:
+- Swagger UI: `http://127.0.0.1:8000/api/v1/docs`
