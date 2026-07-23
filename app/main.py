@@ -44,6 +44,19 @@ async def _ensure_rbac_columns(conn):
             """
         )
     )
+    await conn.execute(
+        text(
+            """
+            ALTER TABLE task.tasks
+            ADD COLUMN IF NOT EXISTS started_at TIMESTAMPTZ,
+            ADD COLUMN IF NOT EXISTS review_due_at TIMESTAMPTZ,
+            ADD COLUMN IF NOT EXISTS reviewed_at TIMESTAMPTZ,
+            ADD COLUMN IF NOT EXISTS approved_at TIMESTAMPTZ,
+            ADD COLUMN IF NOT EXISTS done_at TIMESTAMPTZ;
+            """
+        )
+    )
+
 
 
 @asynccontextmanager
@@ -72,7 +85,7 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title="Task Assignment",
+    title="Multi Tenant Workflow Platform",
     version="1.0.0",
     docs_url="/api/v1/docs",
     redoc_url="/api/v1/redoc",

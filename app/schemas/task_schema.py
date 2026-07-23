@@ -4,9 +4,11 @@ from datetime import datetime
 from enum import Enum
 
 class TaskStatus(str, Enum):
-    pending = "pending"
-    completed = "completed"
-    cancelled = "cancelled"
+    backlog = "backlog"
+    in_progress = "in_progress"
+    in_review = "in_review"
+    approved = "approved"
+    done = "done"
 
 class TaskPriority(str, Enum):
     low = "low"
@@ -24,7 +26,7 @@ class TaskCreateRequest(BaseModel):
 class TaskUpdateRequest(BaseModel):
     title: Optional[str] = None
     description: Optional[str] = None
-    status: Optional[TaskStatus] = None
+    # status: Optional[TaskStatus] = None
     priority: Optional[TaskPriority] = None
     due_date: Optional[datetime] = None
 
@@ -38,6 +40,8 @@ class TaskResponse(BaseModel):
     due_date: Optional[datetime]
     created_at: datetime
 
+class TaskTransitionRequest(BaseModel):
+    target_status: TaskStatus
 
 class TaskListResponse(BaseModel):
     tasks: list[TaskResponse]

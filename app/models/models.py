@@ -91,11 +91,17 @@ class Task(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, nullable=False)
     title = Column(String, nullable=False)
     description = Column(Text, nullable=True)
-    status = Column(Enum(TaskStatus), default=TaskStatus.pending)
+    status = Column(Enum(TaskStatus), default=TaskStatus.backlog)
     priority = Column(Enum(TaskPriority), default=TaskPriority.medium)
     due_date = Column(DateTime(timezone=True), nullable=True)
     owner_id = Column(UUID(as_uuid=True), ForeignKey("task.users.id", ondelete="CASCADE"), nullable=False)
     created_at = Column(DateTime(timezone=True), default=func.now(), nullable=False)
     updated_at = Column(DateTime(timezone=True), default=func.now(), onupdate=func.now(), nullable=False)
+
+    started_at = Column(DateTime(timezone=True), nullable=True)
+    review_due_at = Column(DateTime(timezone=True), nullable=True)
+    reviewed_at = Column(DateTime(timezone=True), nullable=True)
+    approved_at = Column(DateTime(timezone=True), nullable=True)
+    done_at = Column(DateTime(timezone=True), nullable=True)
 
     owner = relationship("User", back_populates="r_tasks")

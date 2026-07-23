@@ -54,6 +54,19 @@ async def update_task_api(task_id: str, task_data: TaskUpdateRequest, user_data:
     except Exception as e:
         logger.exception(f"Unexpected error:", exc_info=e)
         raise HTTPException(status_code=500, detail=str(e))
+    
+
+@router.put("/transition_task/{task_id}", response_model=TaskMessageResponse)
+async def transition_task_api(task_id: str, transition_data: TaskTransitionRequest, user_data: dict = Depends(get_current_user_with_role), db: AsyncSession = Depends(async_get_db)):
+    try:
+        return await task_service.transition_task(db, user_data, task_id, transition_data)
+    except CustomAPIException as e:
+        logger.error(f"CustomError:", exc_info=e)
+        raise HTTPException(status_code=e.status_code, detail=str(e.detail))
+    except Exception as e:
+        logger.exception(f"Unexpected error:", exc_info=e)
+        raise HTTPException(status_code=500, detail=str(e))
+    
 
 @router.delete("/delete_task/{task_id}", response_model=TaskMessageResponse)
 async def delete_task_api(task_id: str, user_data: dict = Depends(get_current_user_with_role), db: AsyncSession = Depends(async_get_db)):
